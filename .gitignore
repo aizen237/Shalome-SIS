@@ -1,0 +1,12 @@
+# Dependencies
+/node_modules
+/server/node_modules
+/client/node_modules
+
+# Environment Variables (CRUCIAL for passwords)
+.env
+.env.local
+
+# Build folders
+/client/dist
+/client/build
