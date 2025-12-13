@@ -1,0 +1,327 @@
+/* client/src/styles/AdminLayout.css */
+
+/* --- GENERAL LAYOUT --- */
+.app-shell {
+    display: flex;
+    min-height: 100vh;
+    background-color: #212529; /* Dark background color for consistency */
+}
+
+/* --- HEADER (Top Bar) --- */
+.app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background-color: #343a40; /* Darker header color */
+    color: white;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.menu-toggle {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    margin-right: 20px;
+}
+
+.header-title {
+    flex-grow: 1; /* Pushes actions to the right */
+    display: flex;
+    align-items: center;
+}
+
+.college-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.header-actions {
+    position: relative;
+}
+
+/* Gear Icon / Dropdown Toggle */
+.action-icon {
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 10px;
+}
+
+/* Dropdown Menu */
+.header-dropdown-menu {
+    position: absolute;
+    top: 40px;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    min-width: 180px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.header-dropdown-menu a,
+.header-dropdown-menu button {
+    padding: 10px 15px;
+    text-decoration: none;
+    color: #333;
+    background: none;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+}
+
+.header-dropdown-menu a:hover,
+.header-dropdown-menu button:hover {
+    background-color: #f8f9fa;
+}
+
+.header-dropdown-menu i {
+    margin-right: 10px;
+}
+
+/* --- SIDEBAR --- */
+.sidebar {
+    width: 250px; /* Default width */
+    position: fixed;
+    top: 60px; /* Below the header */
+    left: 0;
+    bottom: 0;
+    background-color: #343a40; 
+    color: #f8f9fa;
+    transition: width 0.3s, transform 0.3s;
+    z-index: 999;
+    overflow-y: auto;
+    border-right: 1px solid #495057;
+}
+
+.sidebar.collapsed {
+    width: 60px; /* Collapsed width */
+}
+
+/* --- SIDEBAR PROFILE --- */
+.profile-avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 10px;
+    border-bottom: 1px solid #495057;
+}
+
+.sidebar.collapsed .profile-avatar-section {
+    padding: 10px 0;
+}
+
+.profile-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+    border: 3px solid #007bff;
+}
+
+.sidebar.collapsed .profile-img {
+    width: 35px;
+    height: 35px;
+}
+
+.user-name, .user-role {
+    margin: 0;
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    text-align: center;
+}
+
+.user-role {
+    font-size: 0.85rem;
+    color: #adb5bd;
+}
+
+.sidebar.collapsed .user-name,
+.sidebar.collapsed .user-role,
+.sidebar.collapsed .profile-actions {
+    display: none;
+}
+
+.profile-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 5px;
+}
+
+.btn-profile-view, .btn-profile-edit {
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.btn-profile-view {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-profile-edit {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* --- SIDEBAR NAVIGATION --- */
+.sidebar-nav {
+    padding-top: 10px;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    color: #dee2e6;
+    text-decoration: none;
+    transition: background-color 0.2s, color 0.2s;
+    white-space: nowrap;
+}
+
+.nav-item:hover,
+.nav-item.active {
+    background-color: #495057;
+    color: white;
+}
+
+.nav-item i {
+    font-size: 1.1rem;
+    width: 30px; /* Ensure icon spacing is consistent */
+}
+
+.sidebar.collapsed .nav-label {
+    display: none;
+}
+
+.sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 15px 0;
+}
+
+/* Menu Headers (for dropdowns) */
+.menu-header {
+    font-weight: 600;
+    cursor: pointer;
+    position: relative;
+}
+
+.menu-arrow {
+    margin-left: auto;
+    transition: transform 0.3s;
+    font-size: 0.75rem;
+}
+
+.menu-header.open .menu-arrow.rotated {
+    transform: rotate(90deg);
+}
+
+.sidebar.collapsed .menu-header {
+    justify-content: center;
+    padding: 15px 0;
+}
+
+.sidebar.collapsed .menu-arrow {
+    display: none;
+}
+
+/* Sub-Menu */
+.sub-menu {
+    display: flex;
+    flex-direction: column;
+    background-color: #495057;
+    overflow: hidden;
+}
+
+.sub-menu .nav-item {
+    padding-left: 50px;
+    font-size: 0.9em;
+}
+
+.sidebar.collapsed .sub-menu {
+    display: none; /* Submenus are not supported in full collapse view here */
+}
+
+/* --- CONTENT WRAPPER --- */
+.content-wrapper {
+    margin-left: 250px; /* Match sidebar default width */
+    padding-top: 60px; /* Match header height */
+    flex-grow: 1;
+    transition: margin-left 0.3s;
+}
+
+.content-wrapper.sidebar-collapsed {
+    margin-left: 60px; /* Match sidebar collapsed width */
+}
+
+.content-container {
+    padding: 20px;
+    background-color: #212529; /* Apply main background */
+    min-height: calc(100vh - 60px); /* Fill remaining viewport height */
+}
+
+/* --- Dashboard Specific Styles (To match AdminDashboard.js visual) --- */
+
+.quick-links-section {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.quick-link-btn {
+    padding: 10px 15px;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 600;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.quick-link-btn i {
+    margin-right: 8px;
+}
+
+/* Admin Dashboard buttons (to make View/Report match Register/Add) */
+.primary-btn {
+    background-color: #004d40; /* Dark Teal for primary actions */
+    color: white;
+}
+
+.primary-btn:hover {
+    background-color: #00332c;
+}
+
+/* Default style for secondary action buttons to match theme */
+.quick-link-btn:not(.primary-btn) {
+    background-color: #495057; /* Slightly lighter dark color */
+    color: #dee2e6;
+}
+
+.quick-link-btn:not(.primary-btn):hover {
+    background-color: #6c757d;
+}
+
+/* Ensure font awesome icons are visible in buttons */
+.quick-link-btn i {
+    color: white; /* Ensure icons are white inside buttons */
+}

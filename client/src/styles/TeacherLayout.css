@@ -1,0 +1,275 @@
+/* client/src/styles/TeacherLayout.css */
+
+/* This file is based on AppLayout.css to maintain consistent styling */
+
+/* --- 1. Root Variables & Base Styles --- */
+:root {
+    --primary-blue: #4472C4; 
+    --dark-bg: #1E1E1E;     
+    --card-bg: #2C2C2C;     
+    --text-light: #F0F0F0;  
+    --text-muted: #999;     
+    
+    --sidebar-width: 260px;
+    --sidebar-collapsed-width: 60px;
+    --header-height: 60px;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--dark-bg);
+}
+
+.app-shell {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: var(--dark-bg);
+    color: var(--text-light);
+}
+
+/* --- 2. Header Styling --- */
+.app-header {
+    height: var(--header-height);
+    background-color: var(--card-bg);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    border-bottom: 1px solid #3a3a3a;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+.menu-toggle {
+    font-size: 20px;
+    cursor: pointer;
+    margin-right: 25px;
+    color: var(--text-light);
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    margin-right: auto; 
+}
+
+.college-logo {
+    height: 30px; 
+    margin-right: 10px;
+    border: 1px solid var(--primary-blue);
+    padding: 2px;
+    border-radius: 4px;
+}
+
+.college-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--primary-blue);
+}
+
+/* Header Actions and Dropdown */
+.header-actions {
+    position: relative;
+}
+
+.action-icon {
+    font-size: 20px;
+    cursor: pointer;
+    margin-left: 20px;
+    color: var(--text-light);
+}
+
+.menu-dropdown-container {
+    position: relative;
+}
+
+.header-dropdown-menu {
+    position: absolute;
+    top: 35px; 
+    right: 0;
+    background-color: var(--card-bg);
+    border: 1px solid #3a3a3a;
+    border-radius: 5px;
+    min-width: 180px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    z-index: 1001;
+    padding: 5px 0;
+}
+
+.header-dropdown-menu a, 
+.header-dropdown-menu button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px 15px;
+    background: none;
+    border: none;
+    text-align: left;
+    color: var(--text-light);
+    text-decoration: none;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.header-dropdown-menu a:hover,
+.header-dropdown-menu button:hover {
+    background-color: #383838;
+}
+
+.header-dropdown-menu i {
+    margin-right: 10px;
+    width: 20px;
+    color: var(--text-muted);
+}
+.header-dropdown-menu .logout-button {
+    color: #ff6b6b; 
+}
+
+/* --- 3. Sidebar Styling --- */
+.sidebar {
+    width: var(--sidebar-width);
+    height: calc(100vh - var(--header-height));
+    background-color: var(--card-bg);
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    transition: width 0.3s ease; 
+    overflow-x: hidden;
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    z-index: 900;
+}
+
+.sidebar.collapsed {
+    width: var(--sidebar-collapsed-width); 
+}
+
+/* Profile Avatar Section */
+.profile-avatar-section {
+    padding: 15px 10px 25px;
+    text-align: center;
+    border-bottom: 1px solid #3a3a3a;
+    margin: 0 10px;
+}
+
+.profile-img {
+    width: 70px; 
+    height: 70px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 8px;
+    border: 3px solid var(--primary-blue);
+}
+
+.user-name {
+    font-weight: 600;
+    margin: 0 0 2px 0;
+    font-size: 16px;
+}
+
+.user-role {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.profile-actions {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-profile-view, .btn-profile-edit {
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.btn-profile-view {
+    background-color: var(--primary-blue);
+    color: white;
+}
+.btn-profile-view:hover {
+    background-color: #33599a;
+}
+
+.btn-profile-edit {
+    background-color: #383838;
+    color: var(--text-light);
+    border: 1px solid #555;
+}
+.btn-profile-edit:hover {
+    background-color: #4a4a4a;
+}
+
+
+.sidebar.collapsed .profile-avatar-section {
+    display: none;
+}
+
+/* Navigation Links */
+.sidebar-nav {
+    flex-grow: 1; 
+    padding: 10px 0;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    color: var(--text-light);
+    text-decoration: none;
+    padding: 12px 10px;
+    margin: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.2s, color 0.2s;
+    position: relative;
+}
+
+.nav-item i {
+    font-size: 16px;
+    width: 30px; 
+    color: var(--text-muted); 
+}
+
+.nav-item:hover, .nav-item.active {
+    background-color: rgba(68, 114, 196, 0.15); 
+    color: var(--primary-blue);
+}
+
+.nav-item.active i {
+    color: var(--primary-blue); 
+}
+
+.nav-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: opacity 0.3s;
+}
+
+/* Hide label when collapsed */
+.sidebar.collapsed .nav-label {
+    display: none;
+}
+
+/* --- 4. Content Wrapper Styling --- */
+.content-wrapper {
+    margin-top: var(--header-height);
+    margin-left: var(--sidebar-width); 
+    padding: 30px;
+    transition: margin-left 0.3s ease, width 0.3s ease;
+    width: calc(100% - var(--sidebar-width)); 
+}
+
+.content-wrapper.sidebar-collapsed {
+    margin-left: var(--sidebar-collapsed-width); 
+    width: calc(100% - var(--sidebar-collapsed-width));
+}

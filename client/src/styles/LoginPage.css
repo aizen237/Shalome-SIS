@@ -1,0 +1,106 @@
+/* client/src/styles/LoginPage.css */
+
+/* Define variables for consistent dark theme colors */
+:root {
+    --primary-blue: #4472C4; /* Button and highlight color */
+    --dark-bg: #1E1E1E;     /* Main screen background */
+    --card-bg: #2C2C2C;     /* Login form card background */
+    --text-light: #F0F0F0;  /* Main text color */
+    --input-bg: #383838;    /* Input field background */
+    --error-red: #ff6b6b;   /* Error messages */
+}
+
+/* --- Container and Body Styles --- */
+.login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: var(--dark-bg); /* Dark background */
+    color: var(--text-light);
+    font-family: sans-serif;
+}
+
+/* --- Login Form Card --- */
+.login-container {
+    background-color: var(--card-bg);
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* Subtle shadow for depth */
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.login-container h2 {
+    color: var(--primary-blue);
+    margin-bottom: 30px;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+/* --- Form Elements --- */
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 300;
+    color: #ccc;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--input-bg);
+    border: 1px solid #4a4a4a;
+    border-radius: 5px;
+    color: var(--text-light);
+    font-size: 16px;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+    border-color: var(--primary-blue);
+    outline: none;
+}
+
+/* --- Button Styling --- */
+.login-button {
+    width: 100%;
+    padding: 12px;
+    background-color: var(--primary-blue);
+    color: var(--text-light);
+    border: none;
+    border-radius: 5px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 10px;
+}
+
+.login-button:hover {
+    background-color: #33599a; /* Darker shade on hover */
+}
+
+.loading-indicator {
+    color: var(--text-light);
+    margin-top: 15px;
+}
+
+/* --- Error/Info Messages --- */
+.error-message {
+    color: var(--error-red);
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.info-message {
+    color: #888;
+    margin-top: 20px;
+    font-size: 12px;
+}

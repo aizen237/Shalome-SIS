@@ -1,0 +1,163 @@
+/* client/src/styles/Dashboard.css */
+
+/* --- 1. Root Variables & General Styles --- */
+:root {
+    --primary-blue: #4472C4;
+    --card-bg: #2C2C2C;
+    --text-light: #F0F0F0;
+    --text-muted: #999;
+}
+
+.dashboard-content {
+    /* Set up content area for centered layout */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+/* --- Student Dashboard Header Styling --- */
+.student-dashboard-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #3a3a3a;
+}
+
+.student-photo-main {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 15px;
+    border: 4px solid var(--primary-blue);
+    box-shadow: 0 0 10px rgba(68, 114, 196, 0.5);
+}
+
+.welcome-header {
+    color: var(--text-light);
+    font-size: 28px;
+    font-weight: 600;
+    margin: 0;
+    padding: 0;
+    border-bottom: none;
+    text-align: center;
+}
+
+/* --- Main Student Details Card --- */
+.student-details-card-wrapper {
+    /* Constrain the card's width for a clean look */
+    width: 100%;
+    max-width: 800px; 
+    margin: 0 auto 40px;
+}
+
+.dashboard-card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    height: 100%; 
+    display: flex;
+    flex-direction: column;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #3a3a3a;
+}
+
+.card-header i {
+    font-size: 20px;
+    color: var(--primary-blue);
+    margin-right: 10px;
+}
+
+.card-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-light);
+}
+
+/* --- Information Grid --- */
+.info-grid {
+    /* Two columns as required for the Student Details card */
+    display: grid;
+    grid-template-columns: 1fr 1fr; 
+    gap: 25px 40px;
+    width: 100%;
+    padding: 10px 0;
+}
+
+.info-label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.info-value.large-value {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text-light);
+}
+
+/* --- Quick Links Section (Below the card) --- */
+.quick-links-section {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.quick-link-btn {
+    background-color: #383838;
+    color: var(--primary-blue);
+    padding: 12px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+.quick-link-btn:hover {
+    background-color: #4a4a4a;
+}
+
+.quick-link-btn i {
+    margin-right: 8px;
+}
+/* --- Teacher-Specific Styles (Additions to Dashboard.css) --- */
+
+.teacher-details-card-wrapper {
+    width: 100%;
+    max-width: 900px; /* Wider card to fit course list nicely */
+    margin: 0 auto 40px;
+}
+
+/* Adjust the info grid for the teacher's card */
+.teacher-info-grid {
+    grid-template-columns: 1fr 1fr; 
+    gap: 25px 40px;
+}
+
+.course-list {
+    margin-top: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.course-tag {
+    background-color: rgba(68, 114, 196, 0.2);
+    color: var(--primary-blue);
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+}
