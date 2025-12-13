@@ -9,4 +9,4 @@
 
 # Build folders
 /client/dist
-/client/build
+/client/buildserver/.env
