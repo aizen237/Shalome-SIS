@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import '../styles/TeacherLayout.css'; // New CSS file
+import '../styles/TeacherLayout.css'; 
 
 const isLinkActive = (currentPath, linkPath) => {
     return currentPath === linkPath;
@@ -11,8 +11,8 @@ const isLinkActive = (currentPath, linkPath) => {
 
 // --- Sidebar Navigation Component ---
 const Sidebar = ({ isCollapsed, currentPath, logout }) => {
-    // Placeholder Data for Sidebar Profile
-    const teacherName = "Dr. Jane Smith"; 
+    // FIX: Access the real user data from AuthContext
+    const { user } = useAuth(); 
 
     return (
         <div className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
@@ -21,7 +21,8 @@ const Sidebar = ({ isCollapsed, currentPath, logout }) => {
             {!isCollapsed && (
                 <div className="profile-avatar-section">
                     <img src="/path/to/teacher_photo.jpg" alt="Profile" className="profile-img" />
-                    <p className="user-name">{teacherName}</p>
+                    {/* DISPLAY ACTUAL NAME HERE */}
+                    <p className="user-name">{user?.fullName || "Teacher"}</p>
                     <p className="user-role">Teacher</p>
                     <div className="profile-actions">
                         <Link to="/teacher/profile" className="btn-profile-view">View Profile</Link>
@@ -36,19 +37,16 @@ const Sidebar = ({ isCollapsed, currentPath, logout }) => {
                     <span className="nav-label">Dashboard</span>
                 </Link>
 
-                {/* Course Materials */}
                 <Link to="/teacher/materials" className={`nav-item ${isLinkActive(currentPath, '/teacher/materials') ? 'active' : ''}`}>
                     <i className="fas fa-upload"></i> 
                     <span className="nav-label">Course Materials</span>
                 </Link>
 
-                {/* Grade Submission */}
                 <Link to="/teacher/grades" className={`nav-item ${isLinkActive(currentPath, '/teacher/grades') ? 'active' : ''}`}>
                     <i className="fas fa-edit"></i> 
                     <span className="nav-label">Grade Submission</span>
                 </Link>
 
-                {/* Attendance Management */}
                 <Link to="/teacher/attendance" className={`nav-item ${isLinkActive(currentPath, '/teacher/attendance') ? 'active' : ''}`}>
                     <i className="fas fa-clipboard-check"></i> 
                     <span className="nav-label">Attendance Mgmt</span>
@@ -76,20 +74,16 @@ const TeacherLayout = ({ children }) => {
 
     return (
         <div className="app-shell">
-            {/* Header (Top Bar) */}
             <header className="app-header">
-                {/* Top Left: Hamburger button */}
                 <div className="menu-toggle" onClick={toggleSidebar}>
                     <i className="fas fa-bars"></i>
                 </div>
                 
-                {/* Top Center: College logo + full college name */}
                 <div className="header-title">
                     <img src="/path/to/college_logo.png" alt="SBTC Logo" className="college-logo" /> 
                     <span className="college-name">Shalom Business and Technology College</span>
                 </div>
                 
-                {/* Top Right: Menu button for logout + password change */}
                 <div className="header-actions">
                     <div className="menu-dropdown-container">
                         <i className="fas fa-cog action-icon" onClick={toggleHeaderMenu}></i>
@@ -114,7 +108,6 @@ const TeacherLayout = ({ children }) => {
                 logout={logout} 
             />
 
-            {/* Main Content Area */}
             <main className={`content-wrapper ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
                 <div className="content-container">
                     {children} 

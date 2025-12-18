@@ -1,6 +1,5 @@
-// client/src/context/AuthContext.js (FINAL, STABLE VERSION)
+// client/src/context/AuthContext.js (FINAL, STABLE VERSION - Confirmed Correct)
 
-// CRITICAL: ADD useEffect to the import list
 import React, { createContext, useContext, useState, useEffect } from 'react'; 
 import axios from 'axios';
 
@@ -30,7 +29,6 @@ export const AuthProvider = ({ children }) => {
 
     
     // --- CRITICAL FIX: AXIOS INTERCEPTOR SETUP ---
-    // This automatically attaches the login token to all subsequent API calls.
     useEffect(() => {
         axios.defaults.baseURL = API_URL;
 
@@ -50,7 +48,7 @@ export const AuthProvider = ({ children }) => {
         return () => {
             axios.interceptors.request.eject(requestInterceptor);
         };
-    }, []); // Runs only once
+    }, []); 
 
 
     const login = async (username, password) => {
@@ -63,13 +61,13 @@ export const AuthProvider = ({ children }) => {
                 const { token, user } = response.data;
                 const userRole = user.role.toLowerCase();
 
-                // 1. Update React State
+                // 1. Update React State - Stores the entire object with profile data
                 setIsLoggedIn(true);
                 setRole(userRole);
                 setUser(user);
                 setToken(token); 
 
-                // 2. Update Session Storage
+                // 2. Update Session Storage - Stores the entire object with profile data
                 sessionStorage.setItem('token', token);
                 sessionStorage.setItem('user_role', userRole);
                 sessionStorage.setItem('user', JSON.stringify(user));

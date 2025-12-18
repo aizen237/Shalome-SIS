@@ -1,4 +1,4 @@
-// client/src/routes/AppRoutes.js
+// client/src/routes/AppRoutes.js (UPDATED WITH TEACHER ROUTES)
 
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
@@ -13,11 +13,15 @@ import StudentRegistrationPage from '../pages/StudentRegistrationPage';
 // Teacher Pages
 import TeacherLayout from '../components/TeacherLayout';
 import TeacherDashboard from '../pages/TeacherDashboard'; 
+// 🛑 NEW IMPORT
+import TeacherRegistrationPage from '../pages/TeacherRegistrationPage'; 
+
 // Admin Pages
 import AdminLayout from '../components/AdminLayout'; 
 import AdminDashboard from '../pages/AdminDashboard'; 
-// 🛑 NEW IMPORT: AddStudentPage for the Admin section
 import AddStudentPage from '../pages/AddStudentPage'; 
+// 🛑 NEW IMPORT
+import AddTeacherPage from '../pages/AddTeacherPage'; 
 
 // --- Role-Based Protected Route Wrapper ---
 const ProtectedRoute = ({ allowedRoles, children }) => {
@@ -28,7 +32,7 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
     }
     
     // 1. Check if the user is authorized for the current path
-    if (allowedRoles && !allowedRoles.includes(role)) {
+    if (allowedRoles && !allowedRoles.map(r => r.toLowerCase()).includes(role)) {
         // Redirect unauthorized users to their default path
         if (role === 'admin') return <Navigate to="/admin/dashboard" replace />;
         if (role === 'teacher') return <Navigate to="/teacher/dashboard" replace />;
@@ -37,9 +41,11 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
 
     // 2. Render the correct layout based on role
     if (role === 'admin') { 
+        // NOTE: Layout is now applied inside the Route element below for clarity
         return <AdminLayout>{children}</AdminLayout>;
     }
     if (role === 'teacher') {
+        // NOTE: Layout is now applied inside the Route element below for clarity
         return <TeacherLayout>{children}</TeacherLayout>;
     }
     // Default to student layout
@@ -48,7 +54,6 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
 
 // --- Main App Routes Component ---
 const AppRoutes = () => {
-    // FIX: Call useAuth() inside the component where it's allowed
     const { isLoggedIn, role } = useAuth(); 
 
     // Helper function to calculate the redirect path using the state from useAuth()
@@ -65,48 +70,57 @@ const AppRoutes = () => {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register/student" element={<StudentRegistrationPage />} />
             
-            {/* Admin Protected Routes */}
-            <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+            {/* 🛑 NEW PUBLIC ROUTE */}
+            <Route path="/register/teacher" element={<TeacherRegistrationPage />} /> 
             
-            {/* 🛑 NEW ADMIN ROUTE: To the Add Student Form */}
+            {/* Admin Protected Routes */}
+            <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['Admin']}><AdminDashboard /></ProtectedRoute>} />
+            
+            {/* Admin: Add Student Form */}
             <Route 
                 path="/admin/students/add" 
                 element={
-                    <ProtectedRoute allowedRoles={['admin']}>
+                    <ProtectedRoute allowedRoles={['Admin']}>
                         <AddStudentPage /> 
                     </ProtectedRoute>
                 } 
             />
 
-            {/* Keep the other generic routes for students/teachers/staff as they were */}
-            <Route path="/admin/students/*" element={<ProtectedRoute allowedRoles={['admin']}><div>Student Management Section</div></ProtectedRoute>} />
-            <Route path="/admin/teachers/*" element={<ProtectedRoute allowedRoles={['admin']}><div>Teacher Management Section</div></ProtectedRoute>} />
-            <Route path="/admin/staff/*" element={<ProtectedRoute allowedRoles={['admin']}><div>Staff Management Section</div></ProtectedRoute>} />
-            <Route path="/admin/profile/*" element={<ProtectedRoute allowedRoles={['admin']}><div>Admin Profile Management</div></ProtectedRoute>} />
+            {/* 🛑 NEW ADMIN ROUTE: Add Teacher Form */}
+            <Route 
+                path="/admin/teachers/add" 
+                element={
+                    <ProtectedRoute allowedRoles={['Admin']}>
+                        <AddTeacherPage /> 
+                    </ProtectedRoute>
+                } 
+            />
             
             {/* Teacher Protected Routes */}
             <Route 
                 path="/teacher/dashboard" 
                 element={
-                    <ProtectedRoute allowedRoles={['teacher']}>
+                    <ProtectedRoute allowedRoles={['Teacher']}>
                         <TeacherDashboard />
                     </ProtectedRoute>
                 } 
             />
+            {/* Catch-all Teacher Routes */}
+             <Route path="/teacher/*" element={<ProtectedRoute allowedRoles={['Teacher']}><div>Teacher Management Section</div></ProtectedRoute>} />
 
             {/* Student Protected Routes */}
             <Route 
                 path="/dashboard" 
                 element={
-                    <ProtectedRoute allowedRoles={['student']}> 
+                    <ProtectedRoute allowedRoles={['Student']}> 
                         <StudentDashboard />
                     </ProtectedRoute>
                 } 
             />
 
-            {/* Default Route: Uses the fixed logic inside the component */}
+            {/* Default Route: Redirects to the appropriate dashboard or login */}
             <Route path="/" element={<Navigate to={getRedirectPath()} replace />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to={getRedirectPath()} replace />} />
         </Routes>
     );
 };

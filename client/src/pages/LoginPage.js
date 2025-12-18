@@ -1,10 +1,11 @@
-// client/src/pages/LoginPage.js (Minimal change to add registration link)
+// client/src/pages/LoginPage.js
 
 import React, { useState, useEffect } from 'react';
-// CRITICAL CHANGE 1: Import 'Link' from react-router-dom
-import { useNavigate, Link } from 'react-router-dom'; 
+import { useNavigate} from 'react-router-dom'; 
 import styled from 'styled-components';
 import { useAuth } from '../context/AuthContext';
+// NEW IMPORT
+import RegistrationSelection from '../components/RegistrationSelection'; 
 
 // --- THEME COLOR DEFINITIONS ---
 const COLORS = {
@@ -16,7 +17,8 @@ const COLORS = {
     error: '#ff6b6b',        // Error messages (Red)
 };
 
-// --- STYLED COMPONENTS (all existing components) ---
+// --- STYLED COMPONENTS ---
+
 const LoginContainer = styled.div`
     display: flex;
     justify-content: center;
@@ -35,6 +37,7 @@ const LoginForm = styled.form`
     max-width: 400px;
     display: flex;
     flex-direction: column;
+    position: relative; /* CRITICAL: Allows RegistrationSelection to be positioned absolutely inside */
 `;
 
 const LoginHeader = styled.div`
@@ -117,21 +120,24 @@ const ErrorMessage = styled.p`
     font-weight: bold;
 `;
 
-// CRITICAL CHANGE 3: New styled link section
+// Link container styling (no change from your original)
 const RegisterLinkText = styled.p`
     margin-top: 20px;
     font-size: 14px;
     text-align: center;
     color: ${COLORS.text};
+`;
 
-    a {
-        color: ${COLORS.primary};
-        text-decoration: none;
-        font-weight: 600;
+// NEW STYLED COMPONENT for the clickable word "Register"
+const RegisterButton = styled.span`
+    color: ${COLORS.primary};
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer; /* Indicate it's clickable */
+    margin-left: 5px;
 
-        &:hover {
-            text-decoration: underline;
-        }
+    &:hover {
+        text-decoration: underline;
     }
 `;
 // --- END STYLED COMPONENTS ---
@@ -141,11 +147,11 @@ const RegisterLinkText = styled.p`
 const LoginPage = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    // Note: Since we undid all AuthContext fixes, let's keep the old useEffect logic for simplicity
+    const [showRegistration, setShowRegistration] = useState(false); // NEW STATE FOR POPUP
+    
     const { login, isLoggedIn, isLoading, error } = useAuth();
     const navigate = useNavigate();
 
-    // Old redirect logic (to keep it simple as requested)
     useEffect(() => {
         if (isLoggedIn) {
             navigate('/dashboard'); 
@@ -199,14 +205,22 @@ const LoginPage = () => {
 
                 {error && <ErrorMessage>{error}</ErrorMessage>}
 
-                {/* CRITICAL CHANGE 4: The new link section */}
+                {/* UPDATED LINK SECTION */}
                 <RegisterLinkText>
-                    Don't have an account? <Link to="/register/student">Register</Link>
+                    Don't have an account? 
+                    <RegisterButton onClick={() => setShowRegistration(!showRegistration)}>
+                        Register
+                    </RegisterButton>
                 </RegisterLinkText>
 
                 <p style={{marginTop: '5px', fontSize: '12px', textAlign: 'center', color: '#999'}}>
                     Use the test credentials from the initial database setup.
                 </p>
+
+                {/* RENDER THE POPUP CONDITIONALLY */}
+                {showRegistration && (
+                    <RegistrationSelection onClose={() => setShowRegistration(false)} />
+                )}
             </LoginForm>
         </LoginContainer>
     );

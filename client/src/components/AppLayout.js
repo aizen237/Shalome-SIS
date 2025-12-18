@@ -15,7 +15,7 @@ const Sidebar = ({ isCollapsed, currentPath, logout, user }) => { // CRITICAL: R
     const [isOtherInfoOpen, setIsOtherInfoOpen] = useState(false); 
     
     // CRITICAL FIX: Dynamic user data extraction for sidebar profile
-    const fullName = user?.full_name || user?.username || "Student"; 
+    const fullName = user?.fullName || user?.username || "User"; 
     const userRole = user?.role || "Student";
 
     const toggleOtherInfo = (e) => {

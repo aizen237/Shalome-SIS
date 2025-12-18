@@ -1,12 +1,11 @@
-// client/src/pages/AddStudentPage.js (CONFIRMED VERSION)
+// client/src/pages/AddStudentPage.js (RESTORED VERSION)
 
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext'; 
-import '../styles/FormPage.css';
+import '../styles/FormPage.css'; // Points to your original style
 
 const AddStudentPage = () => {
-    // Get the authentication token
     const { token } = useAuth(); 
 
     const [formData, setFormData] = useState({
@@ -29,8 +28,8 @@ const AddStudentPage = () => {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
-        setError(''); // Clear errors on input
-        setMessage(''); // Clear success message on input
+        setError(''); 
+        setMessage(''); 
     };
 
     const handleSubmit = async (e) => {
@@ -39,139 +38,132 @@ const AddStudentPage = () => {
         setMessage('');
         setIsLoading(true);
 
-        // Check if token exists before sending
-        if (!token) {
-            setError("Authentication token missing. Please log in again.");
-            setIsLoading(false);
-            return;
-        }
+        // DATA MAPPING: Splitting fullName into first and last for the DB
+        const nameParts = formData.fullName.trim().split(' ');
+        const firstName = nameParts[0];
+        const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : ' ';
+
+        const dataToSend = {
+            studentId: formData.studentIdNumber,
+            firstName: firstName,
+            lastName: lastName,
+            departmentId: 1, // Defaulting to 1 for now as DB expects Integer
+            enrollmentYear: parseInt(formData.batchYear)
+        };
 
         try {
-            // CRITICAL FIX: Include Authorization Header
-            const response = await axios.post('/api/admin/students/add', formData, {
-                headers: {
-                    // NOTE: The backend listens on port 5000, but axios in React defaults to 
-                    // the current port (3000). By using a relative path, we rely on 
-                    // the proxy setting in package.json to redirect this to 5000. 
-                    // If you don't have "proxy": "http://localhost:5000" in 
-                    // client/package.json, this line will break.
-                    'Authorization': `Bearer ${token}` 
+            const response = await axios.post(
+                'http://localhost:5000/api/admin/students/add',
+                dataToSend,
+                {
+                    headers: { Authorization: `Bearer ${token}` }
                 }
-            });
-            
-            setMessage(response.data.message);
-            
-            // Clear the form after a successful submission
-            setFormData({
-                studentIdNumber: '',
-                fullName: '',
-                department: '',
-                batchYear: new Date().getFullYear(),
-                registrationStatus: 'admitted'
-            });
+            );
 
+            if (response.status === 201) {
+                setMessage('Student added successfully!');
+                setFormData({
+                    studentIdNumber: '',
+                    fullName: '',
+                    department: '',
+                    batchYear: new Date().getFullYear(),
+                    registrationStatus: 'admitted'
+                });
+            }
         } catch (err) {
-            const errorMessage = err.response?.data?.message || 'Network error occurred. Check server connection.';
-            setError(errorMessage);
+            setError(err.response?.data?.message || 'Network error occurred. Check server connection.');
         } finally {
             setIsLoading(false);
         }
     };
 
-    return (
-        <div className="form-page-container">
-            <div className="form-wrapper admin-form-wrapper">
-                <h2>Register New Student Record</h2>
-                <p>This creates the student's academic record and allows them to activate their account later.</p>
+     // client/src/pages/AddStudentPage.js
 
-                {error && <p className="error-message">{error}</p>}
-                {message && <p className="success-message">{message}</p>}
+return (
+    <div className="form-page-container"> {/* Changed from form-container */}
+        <div className="form-wrapper">    {/* Changed from form-card */}
+            <h2>Register New Student</h2>
+            <p>Use this form to pre-register a student's profile. They will use their ID to activate their account later.</p>
 
-                <form onSubmit={handleSubmit} className="admin-form">
-                    
-                    {/* Student ID Number */}
-                    <div className="input-group">
-                        <label htmlFor="studentIdNumber">Student ID Number *</label>
-                        <input
-                            id="studentIdNumber"
-                            name="studentIdNumber"
-                            type="text"
-                            placeholder="e.g., 2025/01 or SBTC/2025/001" 
-                            value={formData.studentIdNumber}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-                    
-                    {/* Full Name */}
-                    <div className="input-group">
-                        <label htmlFor="fullName">Full Name *</label>
-                        <input
-                            id="fullName"
-                            name="fullName"
-                            type="text"
-                            placeholder="e.g., Jane Doe"
-                            value={formData.fullName}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+            {message && <div className="success-message">{message}</div>} {/* Changed class */}
+            {error && <div className="error-message">{error}</div>}       {/* Changed class */}
 
-                    {/* Department */}
-                    <div className="input-group">
-                        <label htmlFor="department">Department *</label>
-                        <select
-                            id="department"
-                            name="department"
-                            value={formData.department}
-                            onChange={handleChange}
-                            required
-                        >
-                            <option value="">-- Select Department --</option>
-                            {departments.map(dept => (
-                                <option key={dept} value={dept}>{dept}</option>
-                            ))}
-                        </select>
-                    </div>
+            <form className="admin-form" onSubmit={handleSubmit}> {/* Added admin-form class */}
+                
+                <div className="input-group">
+                    <label htmlFor="studentIdNumber">Student ID Number *</label>
+                    <input
+                        id="studentIdNumber"
+                        name="studentIdNumber"
+                        type="text"
+                        value={formData.studentIdNumber}
+                        onChange={handleChange}
+                        placeholder="e.g. 0933/15"
+                        required
+                    />
+                </div>
 
-                    {/* Batch Year */}
-                    <div className="input-group">
-                        <label htmlFor="batchYear">Batch Year *</label>
-                        <input
-                            id="batchYear"
-                            name="batchYear"
-                            type="number"
-                            min="2000"
-                            max={new Date().getFullYear() + 5}
-                            value={formData.batchYear}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
+                <div className="input-group">
+                    <label htmlFor="fullName">Full Name *</label>
+                    <input
+                        id="fullName"
+                        name="fullName"
+                        type="text"
+                        value={formData.fullName}
+                        onChange={handleChange}
+                        placeholder="Enter first and last name"
+                        required
+                    />
+                </div>
 
-                    {/* Registration Status */}
-                    <div className="input-group">
-                        <label htmlFor="registrationStatus">Registration Status *</label>
-                        <select
-                            id="registrationStatus"
-                            name="registrationStatus"
-                            value={formData.registrationStatus}
-                            onChange={handleChange}
-                            required
-                        >
-                            {registrationStatuses.map(status => (
-                                <option key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>
-                            ))}
-                        </select>
-                    </div>
+                <div className="input-group">
+                    <label htmlFor="department">Department *</label>
+                    <select 
+                        id="department"
+                        name="department" 
+                        value={formData.department} 
+                        onChange={handleChange} 
+                        required
+                    >
+                        <option value="">Select Department</option>
+                        {departments.map(dept => <option key={dept} value={dept}>{dept}</option>)}
+                    </select>
+                </div>
 
-                    <button type="submit" className="primary-btn" disabled={isLoading}>
-                        {isLoading ? 'Adding Student...' : 'Add Student Record'}
-                    </button>
-                </form>
-            </div>
+                <div className="input-group">
+                    <label htmlFor="batchYear">Batch Year *</label>
+                    <input
+                        id="batchYear"
+                        name="batchYear"
+                        type="number"
+                        value={formData.batchYear}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+
+                <div className="input-group">
+                    <label htmlFor="registrationStatus">Registration Status *</label>
+                    <select 
+                        id="registrationStatus"
+                        name="registrationStatus" 
+                        value={formData.registrationStatus} 
+                        onChange={handleChange} 
+                        required
+                    >
+                        {registrationStatuses.map(status => (
+                            <option key={status} value={status}>{status.charAt(0).toUpperCase() + status.slice(1)}</option>
+                        ))}
+                    </select>
+                </div>
+
+                <button type="submit" className="primary-btn" disabled={isLoading}>
+                    {isLoading ? 'Adding Student...' : 'Add Student Record'}
+                </button>
+            </form>
         </div>
-    );
+    </div>
+);
 };
 
 export default AddStudentPage;

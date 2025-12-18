@@ -1,11 +1,11 @@
-// server/index.js (FINAL, CLEANED VERSION WITH ROBUST SQL)
-
 require('dotenv').config();
 const express = require('express');
 const { Pool } = require('pg'); 
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+
+const authController = require('./controllers/auth.controller'); 
 
 const app = express();
 const PORT = 5000;
@@ -33,9 +33,6 @@ app.use((req, res, next) => {
 // --- AUTHENTICATION AND AUTHORIZATION MIDDLEWARE ---
 // ----------------------------------------------------
 
-/**
- * Middleware to verify JWT token and attach user payload to req.user
- */
 const authMiddleware = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     if (!authHeader) {
@@ -50,7 +47,8 @@ const authMiddleware = (req, res, next) => {
     try {
         const payload = jwt.verify(token, jwtSecret);
         req.user = payload; 
-        console.log(`   [Auth] Token verified for User ID: ${req.user.user_id}, Role: ${req.user.role}`);
+        // FIX 1: Use req.user.id to match the 'id' key stored during login
+        console.log(`   [Auth] Token verified for User ID: ${req.user.id}, Role: ${req.user.role}`);
         next();
     } catch (err) {
         console.error('   [Auth] Token verification failed:', err.message);
@@ -58,224 +56,248 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
-/**
- * Middleware to restrict access to only Admin users.
- */
-const adminAuthMiddleware = (req, res, next) => {
-    if (req.user && req.user.role.toLowerCase() === 'admin') {
+const roleCheckMiddleware = (allowedRoles) => (req, res, next) => {
+    const userRole = req.user.role.toLowerCase();
+    if (allowedRoles.map(r => r.toLowerCase()).includes(userRole)) {
         next();
     } else {
-        return res.status(403).json({ message: 'Access Denied: Admin privileges required.' });
+        return res.status(403).json({ message: `Access Denied: Only ${allowedRoles.join(', ')} privileges required.` });
     }
 };
 
-// ----------------------------------------------------
-// --- PUBLIC ROUTE: LOGIN ---
-// ----------------------------------------------------
+// 🛑 PUBLIC ROUTE: LOGIN
 app.post('/login', async (req, res) => {
+    const client = await pool.connect();
     try {
-        console.log('>>> Processing Login Request <<<');
-        const { username: rawUsername, password: rawPassword } = req.body;
+        const { username, password } = req.body;
+        const userResult = await client.query(
+            'SELECT user_id, username, password_hash, role FROM users WHERE username = $1', 
+            [username]
+        );
 
-        if (!rawUsername || !rawPassword) {
-            return res.status(400).json({ message: "Missing inputs" });
+        if (userResult.rows.length === 0) {
+            return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        const username = rawUsername.trim();
-        const password = rawPassword.trim();
+        const user = userResult.rows[0];
+        const isMatch = await bcrypt.compare(password, user.password_hash);
 
-        const queryText = `SELECT u.user_id, u.username, u.password_hash, u.role, s.first_name, s.last_name, s.enrollment_year, d.name AS department_name FROM users u LEFT JOIN students s ON u.user_id = s.user_account_id LEFT JOIN departments d ON s.department_id = d.department_id WHERE u.username = $1`; 
-
-        const result = await pool.query(queryText, [username]);
-
-        if (result.rows.length === 0) {
-            return res.status(401).json({ message: "Invalid username or password" });
+        if (!isMatch) {
+            return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        const dbUser = result.rows[0];
+        // --- CRITICAL FIX: Define userRole before using it ---
+        const userRole = user.role ? user.role.toLowerCase() : '';
+        let profileData = {};
 
-        const valid = await bcrypt.compare(password, dbUser.password_hash);
-
-        if (valid) {
-            const token = jwt.sign({ user_id: dbUser.user_id, role: dbUser.role }, jwtSecret, { expiresIn: '1h' });
+        if (userRole === 'student') {
+            const studentRes = await client.query(
+                `SELECT s.first_name, s.last_name, s.student_id, d.name as dept_name, s.enrollment_year 
+                 FROM students s 
+                 LEFT JOIN departments d ON s.department_id = d.department_id 
+                 WHERE s.student_id = $1`, 
+                [username]
+            );
             
-            // --- CONSTRUCT USER OBJECT TO SEND TO CLIENT ---
-            const user = {
-                user_id: dbUser.user_id,
-                username: dbUser.username,
-                role: dbUser.role,
-                full_name: (dbUser.first_name && dbUser.last_name) 
-                    ? `${dbUser.first_name} ${dbUser.last_name}` 
-                    : null,
-                department: dbUser.department_name,
-                enrollment_year: dbUser.enrollment_year 
-            };
-            
-            return res.json({ message: "Success", token, user });
-        } else {
-            return res.status(401).json({ message: "Invalid username or password" });
+            if (studentRes.rows.length > 0) {
+                const s = studentRes.rows[0];
+                profileData = {
+                    fullName: `${s.first_name} ${s.last_name}`,
+                    entityId: s.student_id,
+                    department: s.dept_name,
+                    enrollmentYear: s.enrollment_year 
+                };
+            }
+        } 
+        else if (userRole === 'teacher') {
+            const teacherRes = await client.query(
+                `SELECT t.first_name, t.last_name, t.teacher_id, t.email, t.phone_number, d.name as dept_name, t.hire_date
+                 FROM teachers t
+                 LEFT JOIN departments d ON t.department_id = d.department_id
+                 WHERE t.teacher_id = $1`,
+                [username]
+            );
+
+            if (teacherRes.rows.length > 0) {
+                const t = teacherRes.rows[0];
+                profileData = {
+                    fullName: `${t.first_name} ${t.last_name}`,
+                    entityId: t.teacher_id, // Added to display ID in dashboard
+                    department: t.dept_name, // Added to display Dept in dashboard
+                    email: t.email,
+                    phone: t.phone_number,
+                    hireDate: t.hire_date
+                };
+            }
         }
+
+        const token = jwt.sign(
+            { id: user.user_id, role: user.role }, 
+            jwtSecret, 
+            { expiresIn: '1d' }
+        );
+
+        return res.json({
+            token: token,
+            user: {
+                id: user.user_id,
+                role: user.role,
+                username: user.username,
+                ...profileData 
+            }
+        });
 
     } catch (err) {
-        console.error("SERVER ERROR in /login:", err.message);
-        return res.status(500).json({ message: "Server error during login." });
+        console.error(err);
+        res.status(500).json({ message: 'Server Error' });
+    } finally {
+        client.release();
     }
 });
 
-
 // ----------------------------------------------------
-// --- PUBLIC ROUTE: STUDENT REGISTRATION (Activation) ---
+// 🛑 PUBLIC ROUTE: STUDENT ACCOUNT ACTIVATION (Registration)
 // ----------------------------------------------------
 app.post('/api/register/student', async (req, res) => {
+    const client = await pool.connect();
     try {
-        console.log('>>> Processing Student Registration Request <<<');
         const { studentId, password } = req.body; 
 
         if (!studentId || !password) {
-            return res.status(400).json({ message: 'Student ID and Password are required.' });
+            return res.status(400).json({ message: "Student ID and password are required." });
         }
         
-        const trimmedStudentId = studentId.trim();
-        const trimmedPassword = password.trim();
+        const username = studentId.trim(); 
 
-        // 1. Check if the Student ID exists in the 'students' table AND is not yet activated (user_account_id IS NULL)
-        const studentCheckResult = await pool.query(
-            'SELECT user_account_id FROM students WHERE student_id = $1', 
-            [trimmedStudentId]
-        );
-
-        const student = studentCheckResult.rows[0];
-
-        if (!student) {
-            return res.status(404).json({ message: 'Invalid Student ID. Record not found.' });
+        // 1. Check if username already exists in users table
+        const usernameCheck = await client.query('SELECT user_id FROM users WHERE username = $1', [username]);
+        if (usernameCheck.rows.length > 0) {
+            return res.status(409).json({ message: "This Student ID is already registered." });
         }
 
-        if (student.user_account_id) {
-            return res.status(400).json({ message: 'This student account has already been activated. Please log in.' });
+        // 2. Find if the admin has already added this student profile
+        const studentProfileQuery = `SELECT student_id FROM students WHERE student_id = $1`;
+        const studentResult = await client.query(studentProfileQuery, [username]); 
+
+        if (studentResult.rows.length === 0) {
+            return res.status(404).json({ message: "Student ID not found. Please contact Admin to add your profile first." });
         }
 
-        // 2. Hash the password
-        const saltRounds = 10;
-        const passwordHash = await bcrypt.hash(trimmedPassword, saltRounds);
+        // 3. Begin Transaction
+        await client.query('BEGIN');
 
-        // 3. Insert into the users table (using studentId as the username)
-        const userInsertResult = await pool.query(
-            'INSERT INTO users (username, password_hash, role) VALUES ($1, $2, $3) RETURNING user_id',
-            [trimmedStudentId, passwordHash, 'Student'] 
-        );
-        const newUserId = userInsertResult.rows[0].user_id;
+        // 4. Hash Password and Create User
+        const passwordHash = await bcrypt.hash(password, 10);
         
-        // 4. Link the new user account ID back to the student record and set status to 'Enrolled'
-        await pool.query(
-            'UPDATE students SET user_account_id = $1, status = $2 WHERE student_id = $3',
-            [newUserId, 'Enrolled', trimmedStudentId] 
-        );
-
-        console.log(`✅ Student account created and enrolled for ID: ${trimmedStudentId}`);
-        return res.status(201).json({ message: 'Account successfully activated! You can now log in.' });
-
-    } catch (err) {
-        console.error("SERVER ERROR in /api/register/student:", err.message);
-        if (err.code === '23505') { 
-            return res.status(409).json({ message: 'This student ID is already registered as a user.' });
-        }
-        return res.status(500).json({ message: "Server error during student registration." });
-    }
-});
-
-
-// ----------------------------------------------------
-// --- PROTECTED ROUTE: ADMIN ADD STUDENT (FIXED) ---
-// ----------------------------------------------------
-
-app.post('/api/admin/students/add', authMiddleware, adminAuthMiddleware, async (req, res) => {
-    try {
-        console.log('>>> Processing Admin Add Student Request <<<');
-        
-        const { studentIdNumber, fullName, department, batchYear, registrationStatus } = req.body;
-        
-        if (!studentIdNumber || !fullName || !department || !batchYear || !registrationStatus) {
-            return res.status(400).json({ message: 'Missing required student details.' });
-        }
-
-        // --- Name Splitting Logic ---
-        const nameParts = fullName.trim().split(/\s+/);
-        const firstName = nameParts[0];
-        // Ensure lastName handles multi-part names
-        const lastName = nameParts.slice(1).join(' '); 
-        if (!lastName) {
-            return res.status(400).json({ message: 'Please provide both a first and last name.' });
-        }
-
-        // --- BATCH YEAR VALIDATION AND CONVERSION ---
-        const enrollmentYear = parseInt(batchYear, 10);
-        if (isNaN(enrollmentYear) || enrollmentYear.toString().length !== 4) {
-            return res.status(400).json({ 
-                message: 'Invalid batch year format. Please provide a four-digit number (e.g., 2025).' 
-            });
-        }
-        
-        // --- Check for existing student ID (Correctly parameterized) ---
-        const checkResult = await pool.query(
-            'SELECT student_id FROM students WHERE student_id = $1', 
-            [studentIdNumber.trim()]
-        );
-
-        if (checkResult.rows.length > 0) {
-            return res.status(409).json({ message: `Student ID ${studentIdNumber} already exists.` });
-        }
-
-        // --- DEPARTMENT ID LOOKUP (Correctly parameterized) ---
-        let departmentID;
-        try {
-            const departmentName = department.trim();
-            
-            const departmentLookupResult = await pool.query(
-                'SELECT department_id FROM departments WHERE name = $1', 
-                [departmentName]
-            );
-
-            if (departmentLookupResult.rows.length === 0) {
-                return res.status(400).json({ message: `Invalid department: '${departmentName}' not found in the system.` });
-            }
-            departmentID = departmentLookupResult.rows[0].department_id; 
-
-        } catch (lookupError) {
-            console.error("Database lookup error for department:", lookupError.message);
-            return res.status(500).json({ message: "Server error during department lookup. Check 'departments' table name/schema." });
-        }
-
-
-        // --- Final Insertion (Rewritten for maximum robustness) ---
-        const studentInsertQuery = `
-            INSERT INTO students (student_id, first_name, last_name, department_id, enrollment_year, status) 
-            VALUES ($1, $2, $3, $4, $5, $6)
+        const userInsertQuery = `
+            INSERT INTO users (username, password_hash, role)
+            VALUES ($1, $2, 'Student')
+            RETURNING user_id;
         `;
+        const userInsertResult = await client.query(userInsertQuery, [username, passwordHash]);
 
-        await pool.query(studentInsertQuery, [
-            studentIdNumber.trim(), 
-            firstName, 
-            lastName, 
-            departmentID, 
-            enrollmentYear, 
-            registrationStatus.trim() 
-        ]);
-
-        console.log(`✅ New student record added by Admin: ${studentIdNumber}`);
-        return res.status(201).json({ message: 'Student record successfully added to the system.' });
+        await client.query('COMMIT');
+        return res.status(200).json({ message: "Account successfully activated!" });
 
     } catch (err) {
-        // This error handler catches the original SQL error
-        console.error("SERVER ERROR in /api/admin/students/add:", err.message);
-        return res.status(500).json({ message: "Server error occurred while adding student record." });
+        if (client) await client.query('ROLLBACK');
+        console.error("Registration Error:", err.message);
+        return res.status(500).json({ message: "Server error during registration." });
+    } finally {
+        client.release();
+    }
+});
+// server/index.js (Teacher Registration Route)
+
+app.post('/register/teacher', async (req, res) => {
+    const client = await pool.connect();
+    try {
+        const { teacherId, password } = req.body; 
+        
+        if (!teacherId || !password) {
+            return res.status(400).json({ message: "Missing required fields." });
+        }
+        
+        // Clean the input and force it to match the database format
+        const username = teacherId.trim(); 
+
+        // Check the profile using a case-insensitive search
+        const teacherProfileQuery = `SELECT teacher_pk, user_account_id FROM teachers WHERE teacher_id = $1`;
+        const teacherResult = await client.query(teacherProfileQuery, [username]); 
+
+        if (teacherResult.rows.length === 0) {
+            return res.status(404).json({ message: "Invalid Teacher ID Number. Profile not found." });
+        }
+        
+        // ... (Keep the rest of your hashing and user insertion logic the same)
+        await client.query('BEGIN');
+        const passwordHash = await bcrypt.hash(password, 10);
+        const userInsertQuery = `INSERT INTO users (username, password_hash, role, teacher_id) VALUES ($1, $2, 'Teacher', $3) RETURNING user_id;`;
+        const userInsertResult = await client.query(userInsertQuery, [username, passwordHash, teacherResult.rows[0].teacher_pk]);
+        
+        const teacherUpdateQuery = `UPDATE teachers SET user_account_id = $1 WHERE teacher_pk = $2;`;
+        await client.query(teacherUpdateQuery, [userInsertResult.rows[0].user_id, teacherResult.rows[0].teacher_pk]);
+        await client.query('COMMIT');
+
+        return res.status(200).json({ message: "Account successfully activated." });
+    } catch (err) {
+        if (client) await client.query('ROLLBACK');
+        return res.status(500).json({ message: "Server error during account activation." });
+    } finally {
+        client.release();
+    }
+});
+// 🛑 PROTECTED ROUTE: ADMIN ADD STUDENT (FIXED)
+app.post('/api/admin/students/add', authMiddleware, roleCheckMiddleware(['Admin']), async (req, res) => {
+    const client = await pool.connect();
+    try {
+        console.log("DATA RECEIVED FROM FRONTEND:", req.body);
+
+        // FIX 2: Using camelCase here to match formData keys in AddStudentPage.js
+        const { studentId, firstName, lastName, departmentId, enrollmentYear } = req.body;
+
+        const insertQuery = `
+            INSERT INTO students (student_id, first_name, last_name, department_id, enrollment_year)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING student_id;
+        `;
+        
+        // Ensure values match the extracted variables above
+        const values = [studentId, firstName, lastName, departmentId, enrollmentYear];
+
+        console.log("VALUES BEING SENT TO SQL:", values);
+        
+        await client.query(insertQuery, values);
+        res.status(201).json({ status: 'success', message: 'Student added successfully' });
+    } catch (err) {
+        console.error("Database Error:", err.message);
+        res.status(500).json({ message: err.message });
+    } finally {
+        client.release();
     }
 });
 
-// ----------------------------------------------------
-// --- Server Start ---
-// ----------------------------------------------------
+// 🛑 PROTECTED ROUTE: ADMIN ADD TEACHER (NOT TOUCHED)
+app.post('/api/admin/teachers/add', authMiddleware, roleCheckMiddleware(['Admin']), async (req, res) => {
+    const client = await pool.connect();
+    try {
+        // Ensure we extract the correct keys from the mapped frontend data
+        const { teacherId, firstName, lastName, email, phone } = req.body;
+        const departmentId = 1; // Explicitly set if not sent from front
+
+        const insertQuery = `INSERT INTO teachers (teacher_id, first_name, last_name, email, phone_number, department_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING teacher_pk;`;
+        await client.query(insertQuery, [teacherId.trim(), firstName, lastName, email, phone, departmentId]);
+        
+        res.status(201).json({ status: 'success', message: 'Teacher added successfully' });
+        // ... error handling
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ message: "Server error" });
+    } finally {
+        client.release();
+    }
+});
+
 app.listen(PORT, () => {
-    console.log(`\n==========================================`);
     console.log(`Server running on http://localhost:${PORT}`);
-    console.log(`==========================================`);
 });

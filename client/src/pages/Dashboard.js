@@ -1,4 +1,4 @@
-// client/src/pages/Dashboard.js (FINAL, CONFIRMED STRUCTURE)
+// client/src/pages/Dashboard.js
 
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
@@ -18,70 +18,50 @@ const DashboardCard = ({ title, iconClass, children }) => (
     </div>
 );
 
-// --- Student Dashboard ---
 const StudentDashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     
-    // Data extraction
-    const studentName = user?.full_name || user?.username || "Student"; 
+    // This uses the fullName property from your index.js login response
+    const studentName = user?.fullName || user?.username || "Student"; 
     
-    // Extract Student details for the Info Card
     const studentInfo = {
-        name: user?.full_name || 'N/A',
-        id: user?.username || 'N/A', 
+        name: user?.fullName || 'N/A', // Corrected to show Name instead of ID
+        id: user?.entityId || 'N/A', 
         department: user?.department || 'N/A',
-        enrollmentYear: user?.enrollment_year || 'N/A', 
+        registeredDate: user?.enrollmentYear || 'N/A', 
     };
 
     return (
         <div className="dashboard-content">
-            
-            {/* The student photo/header structure from the uploaded file is used here */}
             <div className="student-dashboard-header">
-                {/* The welcome header is now correctly centered */}
-                <h1 className="welcome-header">Welcome Back, {studentName}</h1>
+                <h1 className="welcome-header">Welcome Back, {user.fullName || 'Student'}</h1>
             </div>
 
-            {/* 2. Student Details Card (Uses wrapper to apply max-width) */}
             <div className="student-details-card-wrapper">
-                {/* The title and icon match the screenshot */}
                 <DashboardCard title="Student Details" iconClass="fa-address-card"> 
-                    {/* CRITICAL LAYOUT FIX: Uses info-grid for the two-column CSS layout */}
                     <div className="info-grid"> 
-                        
-                        {/* PAIR 1: Student Name (Column 1) */}
                         <div className="info-item">
                             <span className="info-label">Student Name</span>
                             <span className="info-value large-value">{studentInfo.name}</span>
                         </div>
-                        
-                        {/* PAIR 2: ID (Column 2) */}
                         <div className="info-item">
                             <span className="info-label">Student ID</span>
                             <span className="info-value large-value">{studentInfo.id}</span>
                         </div>
-
-                        {/* PAIR 3: Department (Column 1) */}
                         <div className="info-item">
                             <span className="info-label">Department</span>
                             <span className="info-value large-value">{studentInfo.department}</span>
                         </div>
-                        
-                        {/* PAIR 4: Registered Date (Column 2) */}
                         <div className="info-item">
-                            <span className="info-label">Registered Date</span>
-                            <span className="info-value large-value">{studentInfo.enrollmentYear}</span>
+                            <span className="info-label">Enrollment Year</span>
+                            <span className="info-value large-value">{studentInfo.registeredDate}</span>
                         </div>
-                        
                     </div>
                 </DashboardCard>
             </div>
 
-            {/* 3. Action Buttons (Uses quick-links-section for side-by-side flex layout) */}
             <div className="quick-links-section">
-                
-                {/* View Current Course Button */}
                 <a 
                     href="/courses" 
                     onClick={(e) => { e.preventDefault(); navigate('/courses'); }} 
@@ -90,7 +70,6 @@ const StudentDashboard = () => {
                     <i className="fas fa-book-open"></i> View Current Courses
                 </a>
                 
-                {/* Go to LMS Button */}
                 <a 
                     href="/lms" 
                     onClick={(e) => { e.preventDefault(); navigate('/lms'); }} 
