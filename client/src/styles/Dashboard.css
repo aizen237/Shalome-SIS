@@ -161,3 +161,74 @@
     font-size: 13px;
     font-weight: 500;
 }
+
+/* Table Styles with Visible Grid Lines */
+.table-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse; /* Essential for solid lines */
+    margin-bottom: 1rem;
+    color: #333;
+    /* This adds the outer border of the table */
+    border: 2px solid #2c3e50; 
+}
+
+.data-table th {
+    background-color: #f8f9fa;
+    color: #2c3e50;
+    font-weight: 700;
+    text-align: left;
+    padding: 12px 15px;
+    /* Thick line under headers */
+    border: 2px solid #2c3e50; 
+    text-transform: uppercase;
+    font-size: 0.85rem;
+}
+
+.data-table td {
+    padding: 12px 15px;
+    vertical-align: middle;
+    /* Visible grid lines for every cell */
+    border: 1px solid #bdc3c7; 
+    font-size: 0.95rem;
+}
+
+.data-table tbody tr:nth-child(even) {
+    /* Optional: zebra striping makes lines even easier to follow */
+    background-color: #f9f9f9; 
+}
+
+.data-table tbody tr:hover {
+    background-color: #ecf0f1;
+    transition: background-color 0.2s ease;
+}
+
+.btn-edit {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    margin-right: 5px;
+    cursor: pointer;
+}
+
+.btn-delete {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-edit:hover { background-color: #2980b9; }
+.btn-delete:hover { background-color: #c0392b; }
+

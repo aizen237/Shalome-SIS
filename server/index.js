@@ -298,6 +298,114 @@ app.post('/api/admin/teachers/add', authMiddleware, roleCheckMiddleware(['Admin'
     }
 });
 
+// server/index.js
+
+// 1. GET ALL STUDENTS
+app.get('/api/admin/students', authMiddleware, roleCheckMiddleware(['Admin']), async (req, res) => {
+    const client = await pool.connect();
+    try {
+        // We join 'students' with 'departments' to get the actual department name
+        const result = await client.query(`
+            SELECT s.student_id, s.first_name, s.last_name, d.name as department_name, s.enrollment_year 
+            FROM students s
+            LEFT JOIN departments d ON s.department_id = d.department_id
+            ORDER BY s.student_id ASC
+        `);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ message: "Server error fetching students" });
+    } finally {
+        client.release();
+    }
+});
+
+// 2. GET ALL TEACHERS
+app.get('/api/admin/teachers', authMiddleware, roleCheckMiddleware(['Admin']), async (req, res) => {
+    const client = await pool.connect();
+    try {
+        const result = await client.query(`
+            SELECT t.teacher_id, t.first_name, t.last_name, t.email, t.phone_number, d.name as department_name
+            FROM teachers t
+            LEFT JOIN departments d ON t.department_id = d.department_id
+            ORDER BY t.teacher_id ASC
+        `);
+        res.json(result.rows);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ message: "Server error fetching teachers" });
+    } finally {
+        client.release();
+    }
+});
+// --- DELETE STUDENT ---
+app.delete('/api/admin/students/:id', authMiddleware, roleCheckMiddleware(['Admin']), async (req, res) => {
+    const client = await pool.connect();
+    try {
+        const { id } = req.params;
+        await client.query('DELETE FROM students WHERE student_id = $1', [id]);
+        res.json({ message: "Student deleted successfully" });
+    } catch (err) {
+        res.status(500).json({ message: "Error deleting student" });
+    } finally {
+        client.release();
+    }
+});
+// --- DELETE TEACHER ---
+app.delete('/api/admin/teachers/:id', authMiddleware, roleCheckMiddleware(['Admin']), async (req, res) => {
+    const client = await pool.connect();
+    try {
+        const { id } = req.params;
+        await client.query('DELETE FROM teachers WHERE teacher_id = $1', [id]);
+        res.json({ message: "Teacher deleted successfully" });
+    } catch (err) {
+        res.status(500).json({ message: "Error deleting teacher" });
+    } finally {
+        client.release();
+    }
+});
+
+// --- UPDATE STUDENT (Basic Info) ---
+app.put('/api/admin/students/:id', authMiddleware, roleCheckMiddleware(['Admin']), async (req, res) => {
+    const client = await pool.connect();
+    try {
+        const originalId = req.params.id;
+        const { student_id, first_name, last_name, department_id } = req.body;
+        
+        await client.query(
+            `UPDATE students 
+             SET student_id = $1, first_name = $2, last_name = $3, department_id = $4 
+             WHERE student_id = $5`,
+            [student_id, first_name, last_name, department_id, originalId]
+        );
+        res.json({ message: "Student updated successfully" });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).json({ message: "Update failed" });
+    } finally { client.release(); }
+});
+
+
+// --- UPDATE TEACHER ---
+app.put('/api/admin/teachers/:id', authMiddleware, roleCheckMiddleware(['Admin']), async (req, res) => {
+    const client = await pool.connect();
+    try {
+        const originalId = req.params.id;
+        const { teacher_id, first_name, last_name, email, phone_number, department_id } = req.body;
+        
+        await client.query(
+            `UPDATE teachers 
+             SET teacher_id = $1, first_name = $2, last_name = $3, email = $4, phone_number = $5, department_id = $6 
+             WHERE teacher_id = $7`,
+            [teacher_id, first_name, last_name, email, phone_number, department_id, originalId]
+        );
+        res.json({ message: "Updated" });
+    } catch (err) {
+        res.status(500).json({ message: "ID update failed - possibly duplicate" });
+    } finally { client.release(); }
+});
+// --- START SERVER ---
+
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });

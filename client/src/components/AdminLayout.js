@@ -79,11 +79,11 @@ const Sidebar = ({ isCollapsed, currentPath, logout }) => {
                             <NavItem 
                                 to="/admin/students/add" 
                                 icon="fa-user-plus" 
-                                label="Register New Student" 
+                                label="Add New Student" 
                                 isSubItem={true} 
                             />
                             <NavItem 
-                                to="/admin/students/view" 
+                                to="/admin/students" 
                                 icon="fa-list-ul" 
                                 label="View All Students" 
                                 isSubItem={true} 
@@ -113,7 +113,8 @@ const Sidebar = ({ isCollapsed, currentPath, logout }) => {
                     {openMenu === 'teachers' && (
                         <div className="submenu">
                             <NavItem to="/admin/teachers/add" icon="fa-user-plus" label="Add New Teacher" isSubItem={true} />
-                            <NavItem to="/admin/teachers/view" icon="fa-list-ul" label="View All Teachers" isSubItem={true} />
+                            <NavItem to="/admin/teachers" icon="fa-list-ul" label="View All Teachers" isSubItem={true} />
+                            <NavItem to="/admin/teachers/report" icon="fa-chart-bar" label="Teacher Reports" isSubItem={true} />
                         </div>
                     )}
                 </div>

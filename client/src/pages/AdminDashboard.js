@@ -58,8 +58,9 @@ const AdminDashboard = () => {
             <h2>Quick Management Links</h2>
             {/* Quick actions section for core admin tasks */}
             <div className="quick-links-section">
-                <Link to="/admin/students/add" className="quick-link-btn primary-btn"><i className="fas fa-user-plus"></i> Register New Student</Link>
-                <Link to="/admin/teachers/view" className="quick-link-btn"><i className="fas fa-chalkboard-teacher"></i> View All Teachers</Link>
+                <Link to="/admin/students/add" className="quick-link-btn"><i className="fas fa-user-plus"></i> Register New Student</Link>
+                <Link to="/admin/teachers/add" className="quick-link-btn"><i className="fas fa-user-plus"></i> Register New Teacher</Link>
+                <Link to="/admin/teachers" className="quick-link-btn"><i className="fas fa-chalkboard-teacher"></i> View All Teachers</Link>
                 <Link to="/admin/students/report" className="quick-link-btn"><i className="fas fa-chart-bar"></i> Student Reports</Link>
             </div>
             
