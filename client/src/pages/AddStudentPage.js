@@ -13,6 +13,7 @@ const AddStudentPage = () => {
         fullName: '',
         department: '',
         batchYear: new Date().getFullYear(),
+        yearLevel: '',
         registrationStatus: 'admitted'
     });
     const [message, setMessage] = useState('');
@@ -48,7 +49,8 @@ const AddStudentPage = () => {
             firstName: firstName,
             lastName: lastName,
             departmentId: 1, // Defaulting to 1 for now as DB expects Integer
-            enrollmentYear: parseInt(formData.batchYear)
+            enrollmentYear: parseInt(formData.batchYear),
+            yearLevel: parseInt(formData.yearLevel)
         };
 
         try {
@@ -67,6 +69,7 @@ const AddStudentPage = () => {
                     fullName: '',
                     department: '',
                     batchYear: new Date().getFullYear(),
+                    yearLevel: '',
                     registrationStatus: 'admitted'
                 });
             }
@@ -140,6 +143,24 @@ return (
                         onChange={handleChange}
                         required
                     />
+                </div>
+
+                <div className="input-group">
+                    <label htmlFor="yearLevel">Year Level *</label>
+                    <select
+                        id="yearLevel"
+                        name="yearLevel"
+                        value={formData.yearLevel}
+                        onChange={handleChange}
+                        required
+                    >
+                        <option value="">Select Year Level</option>
+                        <option value="1">Year 1</option>
+                        <option value="2">Year 2</option>
+                        <option value="3">Year 3</option>
+                        <option value="4">Year 4</option>
+                        <option value="5">Year 5</option>
+                    </select>
                 </div>
 
                 <div className="input-group">

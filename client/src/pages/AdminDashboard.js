@@ -60,8 +60,9 @@ const AdminDashboard = () => {
             <div className="quick-links-section">
                 <Link to="/admin/students/add" className="quick-link-btn"><i className="fas fa-user-plus"></i> Register New Student</Link>
                 <Link to="/admin/teachers/add" className="quick-link-btn"><i className="fas fa-user-plus"></i> Register New Teacher</Link>
+                <Link to="/admin/students" className="quick-link-btn"><i className="fas fa-user-graduate"></i> View All Students</Link>
                 <Link to="/admin/teachers" className="quick-link-btn"><i className="fas fa-chalkboard-teacher"></i> View All Teachers</Link>
-                <Link to="/admin/students/report" className="quick-link-btn"><i className="fas fa-chart-bar"></i> Student Reports</Link>
+                <Link to="/admin/courses" className="quick-link-btn"><i className="fas fa-book"></i> Manage Courses</Link>
             </div>
             
             {/* Summary Reports removed as requested */}

@@ -156,8 +156,8 @@ const TeacherRegistrationPage = () => {
         }
 
         try {
-            // API Endpoint: /register/teacher
-            await axios.post('/register/teacher', { teacherId, password });
+            // API Endpoint: /api/register/teacher
+            await axios.post('/api/register/teacher', { teacherId, password });
             
             setMessage('Account successfully activated! Redirecting to login...');
             

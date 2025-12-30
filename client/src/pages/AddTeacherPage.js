@@ -1,6 +1,6 @@
 // client/src/pages/AddTeacherPage.js
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import '../styles/FormPage.css';
@@ -14,17 +14,25 @@ const AddTeacherPage = () => {
         lastName: '',
         email: '',
         phoneNumber: '',
-        department: 'Computer Science', 
-        hireDate: new Date().toISOString().substring(0, 10), 
+        hireDate: new Date().toISOString().substring(0, 10),
+        course_ids: []
     });
+    const [courses, setCourses] = useState([]);
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    const departments = [
-        'Computer Science', 'Business Management', 'Accounting', 
-        'Marketing Management', 'Electrical Engineering', 'Law'
-    ];
+    useEffect(() => {
+        const fetchCourses = async () => {
+            try {
+                const res = await axios.get('http://localhost:5000/api/courses');
+                setCourses(res.data);
+            } catch (err) {
+                console.log("Error fetching courses");
+            }
+        };
+        fetchCourses();
+    }, []);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -37,14 +45,14 @@ const AddTeacherPage = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // FIX: Map teacherIdNumber to teacherId to match the backend index.js
     const dataToSend = {
-        teacherId: formData.teacherIdNumber, // Change key here
+        teacherId: formData.teacherIdNumber,
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
         phone: formData.phoneNumber,
-        departmentId: 1 // Default ID as expected by your DB schema
+        hire_date: formData.hireDate,
+        course_ids: formData.course_ids
     };
 
     try {
@@ -61,8 +69,8 @@ const AddTeacherPage = () => {
             // Reset form fields after successful addition
             setFormData({
                 teacherIdNumber: '', firstName: '', lastName: '', email: '', 
-                phoneNumber: '', department: 'Computer Science', 
-                hireDate: new Date().toISOString().substring(0, 10)
+                phoneNumber: '', hireDate: new Date().toISOString().substring(0, 10),
+                course_ids: []
             });
 
         } catch (err) {
@@ -146,18 +154,36 @@ const AddTeacherPage = () => {
                     </div>
 
                     <div className="input-group">
-                        <label htmlFor="department">Department *</label>
-                        <select
-                            id="department"
-                            name="department"
-                            value={formData.department}
-                            onChange={handleChange}
-                            required
-                        >
-                            {departments.map(dept => (
-                                <option key={dept} value={dept}>{dept}</option>
-                            ))}
-                        </select>
+                        <label htmlFor="courses">Assigned Courses</label>
+                        <div style={{ maxHeight: '150px', overflowY: 'auto', border: '1px solid #ced4da', borderRadius: '8px', padding: '10px', backgroundColor: '#fff' }}>
+                            {courses.length === 0 ? (
+                                <p style={{ color: '#6c757d', fontSize: '0.9em' }}>No courses available. Create courses first.</p>
+                            ) : (
+                                courses.map(course => (
+                                    <label key={course.course_id} style={{ display: 'block', marginBottom: '8px', cursor: 'pointer' }}>
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.course_ids.includes(course.course_id)}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setFormData({
+                                                        ...formData,
+                                                        course_ids: [...formData.course_ids, course.course_id]
+                                                    });
+                                                } else {
+                                                    setFormData({
+                                                        ...formData,
+                                                        course_ids: formData.course_ids.filter(id => id !== course.course_id)
+                                                    });
+                                                }
+                                            }}
+                                            style={{ marginRight: '8px' }}
+                                        />
+                                        {course.course_id} - {course.course_name}
+                                    </label>
+                                ))
+                            )}
+                        </div>
                     </div>
 
                     <div className="input-group">
